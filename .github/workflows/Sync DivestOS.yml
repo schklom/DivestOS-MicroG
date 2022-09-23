@@ -1,0 +1,178 @@
+name: Sync+build+push DivestOS-MicroG
+
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  #schedule:
+    # * is a special character in YAML so you have to quote this string
+    #- cron:  '0 0 * * *'
+  workflow_dispatch: # Allows manually triggering from the Actions page
+
+env:
+  # DEFAULT
+  # GITHUB_WORKSPACE: /home/runner/work/Mirror-workflows/Mirror-workflows
+
+jobs:
+  get_commits:
+    runs-on: ubuntu-latest
+    # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
+    outputs:
+      LOCAL: ${{ steps.commits.outputs.SETLOCAL }}
+      REMOTE: ${{ steps.commits.outputs.SETREMOTE }} 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'DivestOS-MicroG' # branch
+      - name: set local and remote latest commit as environment variables
+        id: commits
+        # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
+        run: |
+          echo "::set-output name=SETREMOTE::$(curl https://divestos.org/builds/LineageOS/lavender/divested-18.1-20220909-dos-lavender.zip.sha512sum)"
+          echo "::set-output name=SETLOCAL::$(cat last_sync_with_original_repo_sha512sum)"
+  
+  repo_sync:
+    needs: [get_commits]
+    runs-on: ubuntu-latest
+    # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
+    if: needs.get_commits.outputs.LOCAL != needs.get_commits.outputs.REMOTE
+    steps:
+      - name: repo-sync
+        uses: wei/git-sync@v3
+        with:
+          source_repo: "https://gitlab.com/divested-mobile/divestos-build"
+          source_branch: "master"
+          destination_repo: "git@github.com:schklom/DivestOS-MicroG.git"
+          destination_branch: "DivestOS-MicroG"
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY_ACTION }}
+      
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'DivestOS-MicroG' # branch
+      
+      - name: get most recent commit id on original repo, for next comparison on sync
+        run: git ls-remote https://gitlab.com/divested-mobile/divestos-build.git HEAD | awk '{ print $1 }' > last_sync_with_original_repo_commit_id
+      - name: Commit and push the change
+        uses: stefanzweifel/git-auto-commit-action@v4.14.1
+        with:
+          commit_message: Add last_sync_with_original_repo_commit_id
+      
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3
+        with:
+          ref: 'DivestOS-MicroG'
+      
+      # https://gitlab.com/divested-mobile/divestos-build/-/blob/master/Scripts/init.sh
+      - name: Turn on MicroG
+        run: sed -i 's/^.*export DOS_MICROG_INCLUDED="NONE";/export DOS_MICROG_INCLUDED="FULL";/' Scripts/init.sh
+      
+      - name: Setup ANDROID_HOME
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/Android/Sdk
+          sed -ri 's/^export ANDROID_HOME=.*;/export ANDROID_HOME="$GITHUB_WORKSPACE\/Android\/Sdk";/' Scripts/init.sh
+      
+      - name: Setup DOS_WORKSPACE_ROOT
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/dos
+          sed -ri 's/^export DOS_WORKSPACE_ROOT=.*;/export DOS_WORKSPACE_ROOT="$GITHUB_WORKSPACE\/dos\/";/' Scripts/init.sh
+      
+      - name: Setup DOS_BUILDS
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/dos/Builds
+          sed -ri 's/^export DOS_BUILDS=.*;/export DOS_BUILDS="$GITHUB_WORKSPACE\/dos\/Builds\/";/' Scripts/init.sh
+      
+      - name: Setup USE_CCACHE
+        run: sed -ri 's/^.*export USE_CCACHE=.*;/export USE_CCACHE=1;/' Scripts/init.sh
+      
+      - name: Setup CCACHE_COMPRESS
+        run: sed -ri 's/^.*export CCACHE_COMPRESS=.*;/export CCACHE_COMPRESS=1;/' Scripts/init.sh
+      
+      - name: Setup CCACHE_COMPRESSLEVEL
+        run: sed -ri 's/^.*export CCACHE_COMPRESSLEVEL=.*;/export CCACHE_COMPRESSLEVEL=1;/' Scripts/init.sh
+      
+      - name: Setup CCACHE_EXEC
+        run: echo "export CCACHE_EXEC=/usr/bin/ccache;" >> Scripts/init.sh
+      
+      - name: Setup CCACHE_DIR
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/ccache
+          sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="$GITHUB_WORKSPACE\/ccache";/' Scripts/init.sh
+      
+      #- name: Turn off Hosts file??
+      #  run: sed -i 's/DOS_HOSTS_BLOCKING=true/DOS_HOSTS_BLOCKING=false/' Scripts/init.sh
+      #- name: Turn on GLONASS usage??
+      #  run: sed -i 's/DOS_GPS_GLONASS_FORCED=false/DOS_GPS_GLONASS_FORCED=true/' Scripts/init.sh
+      # https://github.com/marketplace/actions/git-auto-commit
+      - name: pushing MicroG changes
+        uses: stefanzweifel/git-auto-commit-action@v4.14.1
+        with:
+          # Optional but recommended
+          # Defaults to "Apply automatic changes"
+          commit_message: Turn on MicroG and ccache
+
+  build_push:
+    needs: [repo_sync]
+    #needs: [get_commits]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 'DivestOS-MicroG' # branch
+      
+        # https://divestos.org/index.php?page=build#deps
+      - name: Installing Dependencies
+        run: |
+          sudo apt update && sudo apt upgrade && sudo apt full-upgrade && sudo apt -f install && sudo apt autoremove;
+          sudo ln -s /usr/include/asm-generic /usr/include/asm;
+          sudo apt install autoconf automake bc bison build-essential ccache curl expat flex g++ gawk gcc gcc-multilib git-core git-lfs g++-multilib gnupg gperf lib32ncurses5-dev lib32z1-dev lib32z-dev libc6-dev libc6-dev-i386 libcap-dev libcloog-isl-dev libesd0-dev libexpat1-dev libgcc1:i386 libgl1-mesa-dev libgmp-dev libmpc-dev libmpfr-dev libncurses5-dev libsdl1.2-dev libtool libx11-dev libxml2 libxml2-utils lzop maven ncurses-dev openjdk-8-jdk patch pkg-config pngcrush python-all-dev schedtool squashfs-tools subversion texinfo unzip x11proto-core-dev xsltproc zip zlib1g-dev imagemagick repo firejail optipng jpegoptim;
+          sudo apt clean;
+      
+      - name: Checking out the code
+        run: |
+					git submodule update --init --recursive; #must have git-lfs installed
+					mkdir -p Build/LineageOS-18.1/.repo/local_manifests Builds Signing_Keys .Signing_Keys;
+					gocryptfs -init .Signing_Keys;
+					gocryptfs .Signing_Keys/ Signing_Keys/;
+					##########################################nano Scripts/init.sh; #Choose your options and update paths
+					cd Build/LineageOS-18.1;
+					cat ../../Manifests/Manifest_LAOS-18.1.xml > .repo/local_manifests/local_manifest.xml;
+					repo init -u https://github.com/LineageOS/android.git -b lineage-18.1;
+					repo sync; #This part will take a while
+					#Some systems have python3 set as default, the build scripts require python2
+					##########################################virtualenv venv --python=python2; #not necessary for 18.1 and higher
+					#Generate signing keys
+					source ../../Scripts/init.sh;
+					##########################################nano Generate_Signing_Keys.sh; #Update description
+					source build/envsetup.sh && breakfast lineage_sailfish-user && make -j20 generate_verity_key; #edit device if not available, can be any
+					sh Generate_Signing_Keys.sh lavender; #repeat as needed for other devices
+      
+      - name: Build
+        run: |
+          cd Build/LineageOS-18.1;
+          ##########################################source venv/bin/activate; #Only for python3 default systems, not needed for 18.1 and higher
+          source ../../Scripts/init.sh;
+          resetWorkspace;
+          patchWorkspace;
+          buildDevice lavender; #or buildAll for all supported devices
+      
+      - name: PWD
+        run: echo "$(pwd)"
+      
+      - name: LS
+        run: ls -alh
+        
+      - name: ls $GITHUB_WORKSPACE
+        run: ls -alh $GITHUB_WORKSPACE
+      
+      - name: ls $GITHUB_WORKSPACE/dos/Builds
+        run: ls -alh $GITHUB_WORKSPACE/dos/Builds
+      
+      - name: Release files
+        uses: softprops/action-gh-release@v1
+        #with:
+          ####tag_name: Gadgetbridge-osmand-experiments-${{ needs.get_commit_and_tag.outputs.REMOTETAG }}
+          #tag_name: DivestOS_with_MicroG
+          #files: |
+            # ./app/build/outputs/apk/app-debug.apk
+          #files: ./app/build/outputs/apk/main/release/app-main-release-unsigned.apk
