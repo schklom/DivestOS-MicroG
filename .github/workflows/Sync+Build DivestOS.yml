@@ -130,23 +130,23 @@ jobs:
       
       - name: Checking out the code
         run: |
-					git submodule update --init --recursive; #must have git-lfs installed
-					mkdir -p Build/LineageOS-18.1/.repo/local_manifests Builds Signing_Keys .Signing_Keys;
-					gocryptfs -init .Signing_Keys;
-					gocryptfs .Signing_Keys/ Signing_Keys/;
-					##########################################nano Scripts/init.sh; #Choose your options and update paths
-					cd Build/LineageOS-18.1;
-					cat ../../Manifests/Manifest_LAOS-18.1.xml > .repo/local_manifests/local_manifest.xml;
-					repo init -u https://github.com/LineageOS/android.git -b lineage-18.1;
-					repo sync; #This part will take a while
-					#Some systems have python3 set as default, the build scripts require python2
-					##########################################virtualenv venv --python=python2; #not necessary for 18.1 and higher
-					#Generate signing keys
-					source ../../Scripts/init.sh;
-					##########################################nano Generate_Signing_Keys.sh; #Update description
-					source build/envsetup.sh && breakfast lineage_sailfish-user && make -j20 generate_verity_key; #edit device if not available, can be any
-					sh Generate_Signing_Keys.sh lavender; #repeat as needed for other devices
-      
+          git submodule update --init --recursive; #must have git-lfs installed
+          mkdir -p Build/LineageOS-18.1/.repo/local_manifests Builds Signing_Keys .Signing_Keys;
+          gocryptfs -init .Signing_Keys;
+          gocryptfs .Signing_Keys/ Signing_Keys/;
+          ##########################################nano Scripts/init.sh; #Choose your options and update paths
+          cd Build/LineageOS-18.1;
+          cat ../../Manifests/Manifest_LAOS-18.1.xml > .repo/local_manifests/local_manifest.xml;
+          repo init -u https://github.com/LineageOS/android.git -b lineage-18.1;
+          repo sync; #This part will take a while
+          #Some systems have python3 set as default, the build scripts require python2
+          ##########################################virtualenv venv --python=python2; #not necessary for 18.1 and higher
+          #Generate signing keys
+          source ../../Scripts/init.sh;
+          ##########################################nano Generate_Signing_Keys.sh; #Update description
+          source build/envsetup.sh && breakfast lineage_sailfish-user && make -j20 generate_verity_key; #edit device if not available, can be any
+          sh Generate_Signing_Keys.sh lavender; #repeat as needed for other devices
+
       - name: Build
         run: |
           cd Build/LineageOS-18.1;
