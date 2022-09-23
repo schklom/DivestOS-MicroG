@@ -7,7 +7,7 @@ on:
     #- cron:  '0 0 * * *'
   workflow_dispatch: # Allows manually triggering from the Actions page
 
-env:
+#env:
   # DEFAULT
   # GITHUB_WORKSPACE: /home/runner/work/Mirror-workflows/Mirror-workflows
 
