@@ -27,8 +27,8 @@ export DOS_WORKSPACE_ROOT="/mnt/dos/"; #XXX: THIS MUST BE CORRECT TO BUILD!
 export DOS_BUILDS="/mnt/backup-1/DOS/Builds/";
 export DOS_SIGNING_KEYS=$DOS_WORKSPACE_ROOT"Signing_Keys/4096pro";
 export DOS_SIGNING_GPG=$DOS_WORKSPACE_ROOT"Signing_Keys/gnupg";
-#export USE_CCACHE=1;
-#export CCACHE_DIR="";
+export USE_CCACHE=1;
+export CCACHE_DIR="/mnt/ccache";
 export CCACHE_COMPRESS=1;
 export CCACHE_COMPRESSLEVEL=1;
 #export DOS_BINARY_PATCHER="";
@@ -64,7 +64,7 @@ export DOS_GRAPHENE_MALLOC=true; #Enables use of GrapheneOS' hardened memory all
 export DOS_GRAPHENE_EXEC=true; #Enables use of GrapheneOS' exec spawning feature on 16.0+17.1+18.1+19.1
 export DOS_HOSTS_BLOCKING=true; #Set false to prevent inclusion of a HOSTS file
 export DOS_HOSTS_BLOCKING_LIST="https://divested.dev/hosts-wildcards"; #Must be in the format "127.0.0.1 bad.domain.tld"
-export DOS_MICROG_INCLUDED="NONE"; #Determines inclusion of microG. Options: NONE, NLP, FULL (removed)
+export DOS_MICROG_INCLUDED="FULL"; #Determines inclusion of microG. Options: NONE, NLP, FULL (removed)
 export DOS_SILENCE_INCLUDED=false; #Set false to disable inclusion of Silence SMS app
 export DOS_SENSORS_PERM=false; #Set true to provide a per-app sensors permission for 14.1/15.1 #XXX: can break things like camera
 export DOS_STRONG_ENCRYPTION_ENABLED=false; #Set true to enable AES 256-bit FDE encryption on 14.1+15.1 XXX: THIS WILL **DESTROY** EXISTING INSTALLS!
@@ -188,3 +188,5 @@ source "$DOS_SCRIPTS_COMMON/Shell.sh";
 source "$DOS_SCRIPTS_COMMON/Functions.sh";
 source "$DOS_SCRIPTS_COMMON/Tag_Verifier.sh";
 source "$DOS_SCRIPTS/Functions.sh";
+export CCACHE_EXEC=/usr/bin/ccache;
+mkdir -p /mnt/ccache
