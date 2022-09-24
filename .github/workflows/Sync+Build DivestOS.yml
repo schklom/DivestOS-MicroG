@@ -150,14 +150,10 @@ jobs:
           umask 0022;
           git clone https://gitlab.com/divested-mobile/divestos-build.git DivestOS;
           cd DivestOS;
-          pwd;
-          ls -alh;
-          ls -alh Scripts;
       
       - name: Adjust variables
         run: |
-          pwd;
-          ls -alhr;
+          cd DivestOS;
           sed -i 's/^.*export DOS_MICROG_INCLUDED="NONE";/export DOS_MICROG_INCLUDED="FULL";/' Scripts/init.sh
           sed -ri 's/^.*export USE_CCACHE=.*;/export USE_CCACHE=1;/' Scripts/init.sh
           sed -ri 's/^.*export CCACHE_COMPRESS=.*;/export CCACHE_COMPRESS=1;/' Scripts/init.sh
@@ -168,6 +164,7 @@ jobs:
       
       - name: Checking out the code
         run: |
+          cd DivestOS;
           PATH=$PATH:~/bin
           git submodule update --init --recursive; #must have git-lfs installed
           mkdir -p Build/LineageOS-18.1/.repo/local_manifests Builds Signing_Keys .Signing_Keys;
@@ -188,6 +185,7 @@ jobs:
 
       - name: Build
         run: |
+          cd DivestOS;
           PATH=$PATH:~/bin
           cd Build/LineageOS-18.1;
           ##########################################source venv/bin/activate; #Only for python3 default systems, not needed for 18.1 and higher
@@ -200,10 +198,7 @@ jobs:
         run: echo "$(pwd)"
       
       - name: LS
-        run: ls -alh
-      
-      - name: ls $GITHUB_WORKSPACE
-        run: ls -alh $GITHUB_WORKSPACE
+        run: ls -alhr
       
       - name: ls /mnt/backup-1/DOS/Builds/
         run: ls -alhr /mnt/backup-1/DOS/Builds/
