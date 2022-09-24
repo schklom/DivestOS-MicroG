@@ -117,7 +117,7 @@ jobs:
       image: fedora:latest
       volumes:
         # https://gitlab.com/divested-mobile/divestos-build/-/blob/master/Scripts/init.sh#L27
-        - $HOME/Builds:/mnt/backup-1/DOS/Builds/
+        - /home/runner/Builds:/mnt/backup-1/DOS/Builds/
     steps:
       - name: Checkout
         uses: actions/checkout@v3
