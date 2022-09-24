@@ -91,7 +91,7 @@ jobs:
       
       - name: Setup CCACHE_DIR
         run: |
-          sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="/mnt/ccache";/' Scripts/init.sh
+          sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="\/mnt\/ccache";/' Scripts/init.sh
           echo "mkdir /mnt/ccache" >> Scripts/init.sh
       #    mkdir -p $GITHUB_WORKSPACE/ccache
       #    sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="$GITHUB_WORKSPACE\/ccache";/' Scripts/init.sh
