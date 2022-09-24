@@ -159,16 +159,12 @@ jobs:
         run: |
           sudo dpkg --print-architecture;
           sudo dpkg --add-architecture i386;
-          sudo dpkg --print-architecture;
-          sudo dpkg --print-foreign-architectures;
-          
-          echo 1111;
           
           sudo apt update && sudo apt upgrade && sudo apt full-upgrade && sudo apt -f install && sudo apt autoremove;
           sudo ln -s /usr/include/asm-generic /usr/include/asm;
           sudo apt install autoconf automake bc bison build-essential ccache curl expat flex g++ gawk gcc gcc-multilib git-core git-lfs g++-multilib gnupg gperf lib32ncurses5-dev lib32z1-dev lib32z-dev libc6-dev libc6-dev-i386 libcap-dev libcloog-isl-dev libesd0-dev libexpat1-dev libgcc1:i386 libgl1-mesa-dev libgmp-dev libmpc-dev libmpfr-dev libncurses5-dev libsdl1.2-dev libtool libx11-dev libxml2 libxml2-utils lzop maven ncurses-dev openjdk-8-jdk patch pkg-config pngcrush python-all-dev schedtool squashfs-tools subversion texinfo unzip x11proto-core-dev xsltproc zip zlib1g-dev imagemagick repo firejail optipng jpegoptim;
           sudo apt clean;
-      
+    
       - name: env
         run: env
       
@@ -184,6 +180,9 @@ jobs:
           mkdir -p ~/bin
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo;
           chmod a+x ~/bin/repo;
+          ls -alh /etc
+          ls -alh /etc/crypto-policies
+          ls -alh /etc/crypto-policies/back-ends
           sudo ln -sf /usr/share/crypto-policies/LEGACY/java.txt /etc/crypto-policies/back-ends/java.config;
       
       - name: Retrieve GitHub code
