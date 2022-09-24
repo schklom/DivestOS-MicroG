@@ -174,16 +174,13 @@ jobs:
       - name: ls $HOME
         run: ls -alhr $HOME
       
-      - name: Installing dependencies adjusting $PATH
-        run: |
-          PATH=$PATH:~/bin
-          mkdir -p ~/bin
-          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo;
-          chmod a+x ~/bin/repo;
-          ls -alh /etc
-          ls -alh /etc/crypto-policies
-          ls -alh /etc/crypto-policies/back-ends
-          sudo ln -sf /usr/share/crypto-policies/LEGACY/java.txt /etc/crypto-policies/back-ends/java.config;
+      #- name: Installing dependencies adjusting $PATH (Fedora)
+      #  run: |
+      #    PATH=$PATH:~/bin
+      #    mkdir -p ~/bin
+      #    curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo;
+      #    chmod a+x ~/bin/repo;
+      #    sudo ln -sf /usr/share/crypto-policies/LEGACY/java.txt /etc/crypto-policies/back-ends/java.config;
       
       - name: Retrieve GitHub code
         run: |
