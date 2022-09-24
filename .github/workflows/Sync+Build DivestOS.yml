@@ -146,7 +146,6 @@ jobs:
       # https://askubuntu.com/questions/877683/unable-to-locate-package-libc6i386
       - name: Installing dependencies
         run: |
-          sudo mkdir /etc/apt/sources.list.d
           sudo echo "deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe" > /etc/apt/sources.list.d/divestos
           sudo echo "deb-src http://us.archive.ubuntu.com/ubuntu/ xenial main universe" >> /etc/apt/sources.list/divestos
           
