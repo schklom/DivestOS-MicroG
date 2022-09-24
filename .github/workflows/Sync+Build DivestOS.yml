@@ -140,7 +140,7 @@ jobs:
       
       ############## FEDORA BEGIN
       #  # https://ask.fedoraproject.org/t/how-to-install-fuse-on-fedora-33/11827/2
-      - name: Installing dependencies minus python2-virtualenv
+      - name: Installing dependencies - python2-virtualenv + fuse
         run: |
           sudo dnf update -y;
           sudo dnf install -y @development-tools android-tools automake bc bison bzip2 bzip2-libs ccache curl dpkg-dev flex gcc gcc-c++ git git-lfs glibc-devel.{x86_64,i686} gnupg gperf ImageMagick ImageMagick-c++-devel ImageMagick-devel java-1.8.0-openjdk java-1.8.0-openjdk-devel libgcc.{x86_64,i686} libstdc++.{x86_64,i686} libX11-devel.{x86_64,i686} libxml2-devel libXrandr.{x86_64,i686} libXrender.{x86_64,i686} libxslt lz4-libs lzop make maven mesa-libGL-devel.{x86_64,i686} ncurses ncurses-compat-libs ncurses-devel.{x86_64,i686} ninja-build openssl-devel optipng jpegoptim perl-Digest-MD5-File perl-Switch pngcrush python python3 python3-mako python-mako python-markdown python-networkx readline-devel.{x86_64,i686} rsync schedtool SDL squashfs-tools syslinux-devel unzip wxGTK xml2 xz-lzma-compat zip zlib zlib-devel.{x86_64,i686} vim-common vboot-utils;
@@ -182,9 +182,6 @@ jobs:
       
       - name: ls $HOME
         run: ls -alhr $HOME
-        
-      - name: CHECK GOCRYPTS
-        run: which gocryptfs
       
       ############## FEDORA BEGIN
       - name: Installing dependencies adjusting $PATH
