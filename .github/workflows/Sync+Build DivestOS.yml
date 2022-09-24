@@ -182,6 +182,9 @@ jobs:
       
       - name: ls $HOME
         run: ls -alhr $HOME
+        
+      - name: CHECK GOCRYPTS
+        run: which gocryptfs
       
       ############## FEDORA BEGIN
       - name: Installing dependencies adjusting $PATH
@@ -191,9 +194,15 @@ jobs:
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo;
           chmod a+x ~/bin/repo;
           sudo ln -sf /usr/share/crypto-policies/LEGACY/java.txt /etc/crypto-policies/back-ends/java.config;
-          
-          curl "https://github.com/rfjakob/gocryptfs/releases/download/v2.3/gocryptfs_v2.3_linux-static_amd64.tar.gz" -o ~/bin/gocryptfs
+          cd ~/
+          wget "https://github.com/rfjakob/gocryptfs/releases/download/v2.3/gocryptfs_v2.3_linux-static_amd64.tar.gz"
+          tar -xvzf gocryptfs_v2.3_linux-static_amd64.tar.gz
+          rm gocryptfs_v2.3_linux-static_amd64.tar.gz
+          mv gocryptfs* ~/bin/
       ############## FEDORA END
+      
+      - name: CHECK GOCRYPTS
+        run: which gocryptfs
       
       - name: Retrieve GitHub code
         run: |
