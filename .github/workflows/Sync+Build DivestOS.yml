@@ -99,6 +99,10 @@ jobs:
       #    mkdir -p $GITHUB_WORKSPACE/ccache
       #    sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="$GITHUB_WORKSPACE\/ccache";/' Scripts/init.sh
       
+      - name: Update .gitsubmodules
+        run: |
+          sed -ri 's/git@gitlab.com:/https:\/\/gitlab.com\//' .gitmodules
+      
       #- name: Turn off Hosts file??
       #  run: sed -i 's/DOS_HOSTS_BLOCKING=true/DOS_HOSTS_BLOCKING=false/' Scripts/init.sh
       #- name: Turn on GLONASS usage??
@@ -161,6 +165,7 @@ jobs:
           echo "export CCACHE_EXEC=/usr/bin/ccache;" >> Scripts/init.sh
           sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="\/mnt\/ccache";/' Scripts/init.sh
           echo "mkdir -p /mnt/ccache" >> Scripts/init.sh
+          sed -ri 's/git@gitlab.com:/https:\/\/gitlab.com\//' .gitmodules
       
       - name: Checking out the code
         run: |
