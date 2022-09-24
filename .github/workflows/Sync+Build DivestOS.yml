@@ -129,8 +129,8 @@ jobs:
     #  volumes:
     #    # https://gitlab.com/divested-mobile/divestos-build/-/blob/master/Scripts/init.sh#L27
     #    - /home/runner/Builds:/mnt/backup-1/DOS/Builds/
-    #  env:
-    #    GOCRYPTFS_PASSWORD: ${{ secrets.GOCRYPTFS_PASSWORD }}
+    env:
+      GOCRYPTFS_PASSWORD: ${{ secrets.GOCRYPTFS_PASSWORD }}
       
     steps:      
         # https://divestos.org/index.php?page=build#deps
