@@ -118,12 +118,7 @@ jobs:
       volumes:
         # https://gitlab.com/divested-mobile/divestos-build/-/blob/master/Scripts/init.sh#L27
         - /home/runner/Builds:/mnt/backup-1/DOS/Builds/
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: 'DivestOS-MicroG' # branch
-      
+    steps:      
         # https://divestos.org/index.php?page=build#deps
       - name: Installing dependencies minus python2-virtualenv
         run: |
@@ -142,6 +137,7 @@ jobs:
       - name: Installing dependencies adjusting $PATH
         run: |
           PATH=$PATH:~/bin
+          mkdir -p ~/bin
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo;
           chmod a+x ~/bin/repo;
           sudo ln -sf /usr/share/crypto-policies/LEGACY/java.txt /etc/crypto-policies/back-ends/java.config;
