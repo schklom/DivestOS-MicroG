@@ -32,7 +32,7 @@ jobs:
   
   repo_sync:
     needs: [get_commits]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
     #if: needs.get_commits.outputs.LOCAL != needs.get_commits.outputs.REMOTE
     steps:
@@ -113,7 +113,7 @@ jobs:
   build_push:
     needs: [repo_sync]
     #needs: [get_commits]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - name: Checkout
         uses: actions/checkout@v3
