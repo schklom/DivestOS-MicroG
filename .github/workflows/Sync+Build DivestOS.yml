@@ -229,12 +229,12 @@ jobs:
           echo $GOCRYPTFS_PASSWORD | gocryptfs .Signing_Keys/ Signing_Keys/;
           ##########################################nano Scripts/init.sh; #Choose your options and update paths
           cd Build/LineageOS-18.1;
-          echo 3333;
+          echo 2222;
           cat ../../Manifests/Manifest_LAOS-18.1.xml > .repo/local_manifests/local_manifest.xml;
           repo init -u https://github.com/LineageOS/android.git -b lineage-18.1;
-          echo 4444;
+          echo 3333;
           repo sync; #This part will take a while
-          echo 5555;
+          echo 4444;
           #Some systems have python3 set as default, the build scripts require python2
           ##########################################virtualenv venv --python=python2; #not necessary for 18.1 and higher
           #Generate signing keys
