@@ -12,111 +12,112 @@ on:
   # GITHUB_WORKSPACE: /home/runner/work/Mirror-workflows/Mirror-workflows
 
 jobs:
-  get_commits:
-    runs-on: ubuntu-latest
-    # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
-    outputs:
-      LOCAL: ${{ steps.commits.outputs.SETLOCAL }}
-      REMOTE: ${{ steps.commits.outputs.SETREMOTE }} 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: 'DivestOS-MicroG' # branch
-      - name: set local and remote latest commit as environment variables
-        id: commits
-        # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
-        # https://gitlab.com/divested-mobile/divestos-build/-/issues/17#note_1113008704
-        run: |
-          echo "::set-output name=SETREMOTE::$(curl -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:105.0) Gecko/20100101 Firefox/105.0' 'https://divestos.org/updater.php?base=LineageOS&device=lavender')"
-          echo "::set-output name=SETLOCAL::$(cat last_sync_with_original_repo_sha512sum)"
+  # get_commits:
+    # runs-on: ubuntu-latest
+    # # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
+    # outputs:
+      # LOCAL: ${{ steps.commits.outputs.SETLOCAL }}
+      # REMOTE: ${{ steps.commits.outputs.SETREMOTE }} 
+    # steps:
+      # - name: Checkout
+        # uses: actions/checkout@v3
+        # with:
+          # ref: 'DivestOS-MicroG' # branch
+      # - name: set local and remote latest commit as environment variables
+        # id: commits
+        # # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
+        # # https://gitlab.com/divested-mobile/divestos-build/-/issues/17#note_1113008704
+        # run: |
+          # echo "::set-output name=SETREMOTE::$(curl -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:105.0) Gecko/20100101 Firefox/105.0' 'https://divestos.org/updater.php?base=LineageOS&device=lavender')"
+          # echo "::set-output name=SETLOCAL::$(cat last_sync_with_original_repo_sha512sum)"
   
-  repo_sync:
-    needs: [get_commits]
-    runs-on: ubuntu-latest
-    # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
-    #if: needs.get_commits.outputs.LOCAL != needs.get_commits.outputs.REMOTE
-    steps:
-      - name: repo-sync
-        uses: wei/git-sync@v3
-        with:
-          source_repo: "https://gitlab.com/divested-mobile/divestos-build"
-          source_branch: "master"
-          destination_repo: "git@github.com:schklom/DivestOS-MicroG.git"
-          destination_branch: "DivestOS-MicroG"
-          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY_ACTION }}
+  # repo_sync:
+    # needs: [get_commits]
+    # runs-on: ubuntu-latest
+    # # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
+    # #if: needs.get_commits.outputs.LOCAL != needs.get_commits.outputs.REMOTE
+    # steps:
+      # - name: repo-sync
+        # uses: wei/git-sync@v3
+        # with:
+          # source_repo: "https://gitlab.com/divested-mobile/divestos-build"
+          # source_branch: "master"
+          # destination_repo: "git@github.com:schklom/DivestOS-MicroG.git"
+          # destination_branch: "DivestOS-MicroG"
+          # ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY_ACTION }}
       
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: 'DivestOS-MicroG' # branch
+      # - name: Checkout
+        # uses: actions/checkout@v3
+        # with:
+          # ref: 'DivestOS-MicroG' # branch
       
-      # https://gitlab.com/divested-mobile/divestos-build/-/issues/17#note_1113008704
-      - name: get most recent release on original repo, for next comparison on sync
-        run: |
-          curl -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:105.0) Gecko/20100101 Firefox/105.0' 'https://divestos.org/updater.php?base=LineageOS&device=lavender' > last_sync_with_original_repo_sha512sum
+      # # https://gitlab.com/divested-mobile/divestos-build/-/issues/17#note_1113008704
+      # - name: get most recent release on original repo, for next comparison on sync
+        # run: |
+          # curl -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:105.0) Gecko/20100101 Firefox/105.0' 'https://divestos.org/updater.php?base=LineageOS&device=lavender' > last_sync_with_original_repo_sha512sum
       
-      - name: Commit and push the change
-        uses: stefanzweifel/git-auto-commit-action@v4.14.1
-        with:
-          commit_message: Add last_sync_with_original_repo_sha512sum
+      # - name: Commit and push the change
+        # uses: stefanzweifel/git-auto-commit-action@v4.14.1
+        # with:
+          # commit_message: Add last_sync_with_original_repo_sha512sum
       
-      # https://gitlab.com/divested-mobile/divestos-build/-/blob/master/Scripts/init.sh
-      - name: Turn on MicroG
-        run: sed -i 's/^.*export DOS_MICROG_INCLUDED="NONE";/export DOS_MICROG_INCLUDED="FULL";/' Scripts/init.sh
+      # # https://gitlab.com/divested-mobile/divestos-build/-/blob/master/Scripts/init.sh
+      # - name: Turn on MicroG
+        # run: sed -i 's/^.*export DOS_MICROG_INCLUDED="NONE";/export DOS_MICROG_INCLUDED="FULL";/' Scripts/init.sh
       
-      #- name: Setup ANDROID_HOME
-      #  run: |
-      #    mkdir -p $GITHUB_WORKSPACE/Android/Sdk
-      #    sed -ri 's/^export ANDROID_HOME=.*;/export ANDROID_HOME=$GITHUB_WORKSPACE"\/Android\/Sdk";/' Scripts/init.sh
+      # #- name: Setup ANDROID_HOME
+      # #  run: |
+      # #    mkdir -p $GITHUB_WORKSPACE/Android/Sdk
+      # #    sed -ri 's/^export ANDROID_HOME=.*;/export ANDROID_HOME=$GITHUB_WORKSPACE"\/Android\/Sdk";/' Scripts/init.sh
       
-      #- name: Setup DOS_WORKSPACE_ROOT
-      #  run: |
-      #    mkdir -p $GITHUB_WORKSPACE/dos
-      #    sed -ri 's/^export DOS_WORKSPACE_ROOT=.*;/export DOS_WORKSPACE_ROOT=$GITHUB_WORKSPACE"\/dos\/";/' Scripts/init.sh
+      # #- name: Setup DOS_WORKSPACE_ROOT
+      # #  run: |
+      # #    mkdir -p $GITHUB_WORKSPACE/dos
+      # #    sed -ri 's/^export DOS_WORKSPACE_ROOT=.*;/export DOS_WORKSPACE_ROOT=$GITHUB_WORKSPACE"\/dos\/";/' Scripts/init.sh
       
-      #- name: Setup DOS_BUILDS
-      #  run: |
-      #    mkdir -p $GITHUB_WORKSPACE/dos/Builds
-      #    sed -ri 's/^export DOS_BUILDS=.*;/export DOS_BUILDS=$GITHUB_WORKSPACE"\/dos\/Builds\/";/' Scripts/init.sh
+      # #- name: Setup DOS_BUILDS
+      # #  run: |
+      # #    mkdir -p $GITHUB_WORKSPACE/dos/Builds
+      # #    sed -ri 's/^export DOS_BUILDS=.*;/export DOS_BUILDS=$GITHUB_WORKSPACE"\/dos\/Builds\/";/' Scripts/init.sh
       
-      - name: Setup USE_CCACHE
-        run: sed -ri 's/^.*export USE_CCACHE=.*;/export USE_CCACHE=1;/' Scripts/init.sh
+      # - name: Setup USE_CCACHE
+        # run: sed -ri 's/^.*export USE_CCACHE=.*;/export USE_CCACHE=1;/' Scripts/init.sh
       
-      - name: Setup CCACHE_COMPRESS
-        run: sed -ri 's/^.*export CCACHE_COMPRESS=.*;/export CCACHE_COMPRESS=1;/' Scripts/init.sh
+      # - name: Setup CCACHE_COMPRESS
+        # run: sed -ri 's/^.*export CCACHE_COMPRESS=.*;/export CCACHE_COMPRESS=1;/' Scripts/init.sh
       
-      - name: Setup CCACHE_COMPRESSLEVEL
-        run: sed -ri 's/^.*export CCACHE_COMPRESSLEVEL=.*;/export CCACHE_COMPRESSLEVEL=1;/' Scripts/init.sh
+      # - name: Setup CCACHE_COMPRESSLEVEL
+        # run: sed -ri 's/^.*export CCACHE_COMPRESSLEVEL=.*;/export CCACHE_COMPRESSLEVEL=1;/' Scripts/init.sh
       
-      - name: Setup CCACHE_EXEC
-        run: echo "export CCACHE_EXEC=/usr/bin/ccache;" >> Scripts/init.sh
+      # - name: Setup CCACHE_EXEC
+        # run: echo "export CCACHE_EXEC=/usr/bin/ccache;" >> Scripts/init.sh
       
-      - name: Setup CCACHE_DIR
-        run: |
-          sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="\/mnt\/ccache";/' Scripts/init.sh
-          echo "mkdir -p /mnt/ccache" >> Scripts/init.sh
-      #    mkdir -p $GITHUB_WORKSPACE/ccache
-      #    sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="$GITHUB_WORKSPACE\/ccache";/' Scripts/init.sh
+      # - name: Setup CCACHE_DIR
+        # run: |
+          # sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="\/mnt\/ccache";/' Scripts/init.sh
+          # echo "mkdir -p /mnt/ccache" >> Scripts/init.sh
+      # #    mkdir -p $GITHUB_WORKSPACE/ccache
+      # #    sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="$GITHUB_WORKSPACE\/ccache";/' Scripts/init.sh
       
-      - name: Update .gitsubmodules
-        run: |
-          sed -ri 's/git@gitlab.com:/https:\/\/gitlab.com\//' .gitmodules
+      # - name: Update .gitsubmodules
+        # run: |
+          # sed -ri 's/git@gitlab.com:/https:\/\/gitlab.com\//' .gitmodules
       
-      #- name: Turn off Hosts file??
-      #  run: sed -i 's/DOS_HOSTS_BLOCKING=true/DOS_HOSTS_BLOCKING=false/' Scripts/init.sh
-      #- name: Turn on GLONASS usage??
-      #  run: sed -i 's/DOS_GPS_GLONASS_FORCED=false/DOS_GPS_GLONASS_FORCED=true/' Scripts/init.sh
-      # https://github.com/marketplace/actions/git-auto-commit
-      - name: pushing MicroG changes
-        uses: stefanzweifel/git-auto-commit-action@v4.14.1
-        with:
-          # Optional but recommended
-          # Defaults to "Apply automatic changes"
-          commit_message: Turn on MicroG and ccache
+      # #- name: Turn off Hosts file??
+      # #  run: sed -i 's/DOS_HOSTS_BLOCKING=true/DOS_HOSTS_BLOCKING=false/' Scripts/init.sh
+      # #- name: Turn on GLONASS usage??
+      # #  run: sed -i 's/DOS_GPS_GLONASS_FORCED=false/DOS_GPS_GLONASS_FORCED=true/' Scripts/init.sh
+      # # https://github.com/marketplace/actions/git-auto-commit
+      # - name: pushing MicroG changes
+        # uses: stefanzweifel/git-auto-commit-action@v4.14.1
+        # with:
+          # # Optional but recommended
+          # # Defaults to "Apply automatic changes"
+          # commit_message: Turn on MicroG and ccache
+          
 
   build_push:
-    needs: [repo_sync]
+  #  needs: [repo_sync]
     #needs: [get_commits]
     runs-on: ubuntu-18.04
     # GOCRYPT IS NOT AVAILABLE ON FEDORA 36+
@@ -145,8 +146,9 @@ jobs:
       # https://askubuntu.com/questions/877683/unable-to-locate-package-libc6i386
       - name: Installing dependencies
         run: |
-          sudo echo "deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe" >> /etc/apt/sources.list
-          sudo echo "deb-src http://us.archive.ubuntu.com/ubuntu/ xenial main universe" >> /etc/apt/sources.list
+          sudo mkdir /etc/apt/sources.list.d
+          sudo echo "deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe" > /etc/apt/sources.list.d/divestos
+          sudo echo "deb-src http://us.archive.ubuntu.com/ubuntu/ xenial main universe" >> /etc/apt/sources.list/divestos
           
           echo 0000;
           
