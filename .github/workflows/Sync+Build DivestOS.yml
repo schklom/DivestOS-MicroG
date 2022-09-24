@@ -26,8 +26,9 @@ jobs:
       - name: set local and remote latest commit as environment variables
         id: commits
         # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
+        # https://gitlab.com/divested-mobile/divestos-build/-/issues/17#note_1113008704
         run: |
-          echo "::set-output name=SETREMOTE::$(curl https://divestos.org/builds/LineageOS/lavender/divested-18.1-20220909-dos-lavender.zip.sha512sum)"
+          echo "::set-output name=SETREMOTE::$(curl -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:105.0) Gecko/20100101 Firefox/105.0' 'https://divestos.org/updater.php?base=LineageOS&device=lavender')"
           echo "::set-output name=SETLOCAL::$(cat last_sync_with_original_repo_sha512sum)"
   
   repo_sync:
@@ -50,8 +51,10 @@ jobs:
         with:
           ref: 'DivestOS-MicroG' # branch
       
-      - name: get most recent commit id on original repo, for next comparison on sync
-        run: git ls-remote https://gitlab.com/divested-mobile/divestos-build.git HEAD | awk '{ print $1 }' > last_sync_with_original_repo_sha512sum
+      # https://gitlab.com/divested-mobile/divestos-build/-/issues/17#note_1113008704
+      - name: get most recent release on original repo, for next comparison on sync
+        run: |
+          curl -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:105.0) Gecko/20100101 Firefox/105.0' 'https://divestos.org/updater.php?base=LineageOS&device=lavender' > last_sync_with_original_repo_sha512sum
       
       - name: Commit and push the change
         uses: stefanzweifel/git-auto-commit-action@v4.14.1
