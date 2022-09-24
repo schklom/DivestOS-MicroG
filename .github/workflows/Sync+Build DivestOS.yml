@@ -13,7 +13,7 @@ on:
 
 jobs:
   get_commits:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
     outputs:
       LOCAL: ${{ steps.commits.outputs.SETLOCAL }}
@@ -32,7 +32,7 @@ jobs:
   
   repo_sync:
     needs: [get_commits]
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
     #if: needs.get_commits.outputs.LOCAL != needs.get_commits.outputs.REMOTE
     steps:
@@ -51,35 +51,31 @@ jobs:
           ref: 'DivestOS-MicroG' # branch
       
       - name: get most recent commit id on original repo, for next comparison on sync
-        run: git ls-remote https://gitlab.com/divested-mobile/divestos-build.git HEAD | awk '{ print $1 }' > last_sync_with_original_repo_commit_id
+        run: git ls-remote https://gitlab.com/divested-mobile/divestos-build.git HEAD | awk '{ print $1 }' > last_sync_with_original_repo_sha512sum
+      
       - name: Commit and push the change
         uses: stefanzweifel/git-auto-commit-action@v4.14.1
         with:
-          commit_message: Add last_sync_with_original_repo_commit_id
-      
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
-        with:
-          ref: 'DivestOS-MicroG'
+          commit_message: Add last_sync_with_original_repo_sha512sum
       
       # https://gitlab.com/divested-mobile/divestos-build/-/blob/master/Scripts/init.sh
       - name: Turn on MicroG
         run: sed -i 's/^.*export DOS_MICROG_INCLUDED="NONE";/export DOS_MICROG_INCLUDED="FULL";/' Scripts/init.sh
       
-      - name: Setup ANDROID_HOME
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/Android/Sdk
-          sed -ri 's/^export ANDROID_HOME=.*;/export ANDROID_HOME="$GITHUB_WORKSPACE\/Android\/Sdk";/' Scripts/init.sh
+      #- name: Setup ANDROID_HOME
+      #  run: |
+      #    mkdir -p $GITHUB_WORKSPACE/Android/Sdk
+      #    sed -ri 's/^export ANDROID_HOME=.*;/export ANDROID_HOME=$GITHUB_WORKSPACE"\/Android\/Sdk";/' Scripts/init.sh
       
-      - name: Setup DOS_WORKSPACE_ROOT
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/dos
-          sed -ri 's/^export DOS_WORKSPACE_ROOT=.*;/export DOS_WORKSPACE_ROOT="$GITHUB_WORKSPACE\/dos\/";/' Scripts/init.sh
+      #- name: Setup DOS_WORKSPACE_ROOT
+      #  run: |
+      #    mkdir -p $GITHUB_WORKSPACE/dos
+      #    sed -ri 's/^export DOS_WORKSPACE_ROOT=.*;/export DOS_WORKSPACE_ROOT=$GITHUB_WORKSPACE"\/dos\/";/' Scripts/init.sh
       
-      - name: Setup DOS_BUILDS
-        run: |
-          mkdir -p $GITHUB_WORKSPACE/dos/Builds
-          sed -ri 's/^export DOS_BUILDS=.*;/export DOS_BUILDS="$GITHUB_WORKSPACE\/dos\/Builds\/";/' Scripts/init.sh
+      #- name: Setup DOS_BUILDS
+      #  run: |
+      #    mkdir -p $GITHUB_WORKSPACE/dos/Builds
+      #    sed -ri 's/^export DOS_BUILDS=.*;/export DOS_BUILDS=$GITHUB_WORKSPACE"\/dos\/Builds\/";/' Scripts/init.sh
       
       - name: Setup USE_CCACHE
         run: sed -ri 's/^.*export USE_CCACHE=.*;/export USE_CCACHE=1;/' Scripts/init.sh
@@ -95,8 +91,10 @@ jobs:
       
       - name: Setup CCACHE_DIR
         run: |
-          mkdir -p $GITHUB_WORKSPACE/ccache
-          sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="$GITHUB_WORKSPACE\/ccache";/' Scripts/init.sh
+          sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="/mnt/ccache";/' Scripts/init.sh
+          echo "mkdir /mnt/ccache" >> Scripts/init.sh
+      #    mkdir -p $GITHUB_WORKSPACE/ccache
+      #    sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="$GITHUB_WORKSPACE\/ccache";/' Scripts/init.sh
       
       #- name: Turn off Hosts file??
       #  run: sed -i 's/DOS_HOSTS_BLOCKING=true/DOS_HOSTS_BLOCKING=false/' Scripts/init.sh
@@ -113,7 +111,9 @@ jobs:
   build_push:
     needs: [repo_sync]
     #needs: [get_commits]
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idcontainer
+    container: fedora:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -123,10 +123,11 @@ jobs:
         # https://divestos.org/index.php?page=build#deps
       - name: Installing Dependencies
         run: |
-          sudo apt update && sudo apt upgrade && sudo apt full-upgrade && sudo apt -f install && sudo apt autoremove;
-          sudo ln -s /usr/include/asm-generic /usr/include/asm;
-          sudo apt install autoconf automake bc bison build-essential ccache curl expat flex g++ gawk gcc gcc-multilib git-core git-lfs g++-multilib gnupg gperf lib32ncurses5-dev lib32z1-dev lib32z-dev libc6-dev libc6-dev-i386 libcap-dev libcloog-isl-dev libesd0-dev libexpat1-dev libgcc1:i386 libgl1-mesa-dev libgmp-dev libmpc-dev libmpfr-dev libncurses5-dev libsdl1.2-dev libtool libx11-dev libxml2 libxml2-utils lzop maven ncurses-dev openjdk-8-jdk patch pkg-config pngcrush python-all-dev schedtool squashfs-tools subversion texinfo unzip x11proto-core-dev xsltproc zip zlib1g-dev imagemagick repo firejail optipng jpegoptim;
-          sudo apt clean;
+          sudo dnf update;
+          sudo dnf install @development-tools android-tools automake bc bison bzip2 bzip2-libs ccache curl dpkg-dev flex gcc gcc-c++ git git-lfs glibc-devel.{x86_64,i686} gnupg gperf ImageMagick ImageMagick-c++-devel ImageMagick-devel java-1.8.0-openjdk java-1.8.0-openjdk-devel libgcc.{x86_64,i686} libstdc++.{x86_64,i686} libX11-devel.{x86_64,i686} libxml2-devel libXrandr.{x86_64,i686} libXrender.{x86_64,i686} libxslt lz4-libs lzop make maven mesa-libGL-devel.{x86_64,i686} ncurses ncurses-compat-libs ncurses-devel.{x86_64,i686} ninja-build openssl-devel optipng jpegoptim perl-Digest-MD5-File perl-Switch pngcrush python python2-virtualenv python3 python3-mako python-mako python-markdown python-networkx readline-devel.{x86_64,i686} rsync schedtool SDL squashfs-tools syslinux-devel unzip wxGTK xml2 xz-lzma-compat zip zlib zlib-devel.{x86_64,i686} vim-common vboot-utils;
+          curl https://storage.googleapis.com/git-repo-downloads/repo >> ~/bin/repo;
+          chmod a+x ~/bin/repo;
+          sudo ln -sf /usr/share/crypto-policies/LEGACY/java.txt /etc/crypto-policies/back-ends/java.config;
       
       - name: Checking out the code
         run: |
