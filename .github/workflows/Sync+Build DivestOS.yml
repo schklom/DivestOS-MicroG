@@ -128,7 +128,6 @@ jobs:
       
       - name: Installing dependencies (inside $HOME/.local/bin instead of ~/bin)
         run: |
-          mkdir -p $HOME/.local/bin/repo;
           curl https://storage.googleapis.com/git-repo-downloads/repo >> $HOME/.local/bin/repo;
           chmod a+x $HOME/.local/bin/repo;
           sudo ln -sf /usr/share/crypto-policies/LEGACY/java.txt /etc/crypto-policies/back-ends/java.config;
