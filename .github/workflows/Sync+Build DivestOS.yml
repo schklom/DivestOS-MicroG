@@ -13,7 +13,7 @@ on:
 
 jobs:
   get_commits:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     # https://lannonbr.com/blog/2020-04-16-gh-actions-job-outputs
     outputs:
       LOCAL: ${{ steps.commits.outputs.SETLOCAL }}
