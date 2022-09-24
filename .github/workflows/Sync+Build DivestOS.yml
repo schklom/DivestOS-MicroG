@@ -199,11 +199,6 @@ jobs:
           mv gocryptfs* ~/bin/
       ############## FEDORA END
       
-      - name: CHECK GOCRYPTS
-        run: |
-          PATH=$PATH:~/bin
-          which gocryptfs
-      
       - name: Retrieve GitHub code
         run: |
           umask 0022;
@@ -212,6 +207,7 @@ jobs:
       
       - name: Adjust variables
         run: |
+          PATH=$PATH:~/bin
           cd DivestOS;
           sed -i 's/^.*export DOS_MICROG_INCLUDED="NONE";/export DOS_MICROG_INCLUDED="FULL";/' Scripts/init.sh
           sed -ri 's/^.*export USE_CCACHE=.*;/export USE_CCACHE=1;/' Scripts/init.sh
@@ -224,15 +220,12 @@ jobs:
       
       - name: Checking out the code
         run: |
-          cd DivestOS;
           PATH=$PATH:~/bin
+          cd DivestOS;
           git submodule update --init --recursive; #must have git-lfs installed
           mkdir -p Build/LineageOS-18.1/.repo/local_manifests Builds Signing_Keys .Signing_Keys;
-          echo 1111;
           echo $GOCRYPTFS_PASSWORD | gocryptfs -init .Signing_Keys;
-          echo 2222;
-          modprobe fuse
-          echo 2233;
+          echo 1111;
           echo $GOCRYPTFS_PASSWORD | gocryptfs .Signing_Keys/ Signing_Keys/;
           ##########################################nano Scripts/init.sh; #Choose your options and update paths
           cd Build/LineageOS-18.1;
