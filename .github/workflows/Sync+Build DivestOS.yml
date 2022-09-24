@@ -92,7 +92,7 @@ jobs:
       - name: Setup CCACHE_DIR
         run: |
           sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="\/mnt\/ccache";/' Scripts/init.sh
-          echo "mkdir /mnt/ccache" >> Scripts/init.sh
+          echo "mkdir -p /mnt/ccache" >> Scripts/init.sh
       #    mkdir -p $GITHUB_WORKSPACE/ccache
       #    sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="$GITHUB_WORKSPACE\/ccache";/' Scripts/init.sh
       
@@ -113,7 +113,11 @@ jobs:
     #needs: [get_commits]
     runs-on: ubuntu-latest
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idcontainer
-    container: fedora:latest
+    container:
+      image: fedora:latest
+      volumes:
+        # https://gitlab.com/divested-mobile/divestos-build/-/blob/master/Scripts/init.sh#L27
+        - $HOME/Builds:/mnt/backup-1/DOS/Builds/
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -132,14 +136,35 @@ jobs:
       - name: pwd
         run: pwd
       
-      - name: Installing dependencies (inside $HOME/.local/bin instead of ~/bin)
+      - name: ls $HOME
+        run: ls -alhr $HOME
+      
+      - name: Installing dependencies adjusting $PATH
         run: |
-          curl https://storage.googleapis.com/git-repo-downloads/repo >> $HOME/.local/bin/repo;
-          chmod a+x $HOME/.local/bin/repo;
+          PATH=$PATH:~/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo;
+          chmod a+x ~/bin/repo;
           sudo ln -sf /usr/share/crypto-policies/LEGACY/java.txt /etc/crypto-policies/back-ends/java.config;
+      
+      - name: Retrieve GitHub code
+        run: |
+          umask 0022;
+          git clone https://gitlab.com/divested-mobile/divestos-build.git DivestOS;
+          cd DivestOS;
+      
+      - name: Adjust variables
+        run: |
+          sed -i 's/^.*export DOS_MICROG_INCLUDED="NONE";/export DOS_MICROG_INCLUDED="FULL";/' Scripts/init.sh
+          sed -ri 's/^.*export USE_CCACHE=.*;/export USE_CCACHE=1;/' Scripts/init.sh
+          sed -ri 's/^.*export CCACHE_COMPRESS=.*;/export CCACHE_COMPRESS=1;/' Scripts/init.sh
+          sed -ri 's/^.*export CCACHE_COMPRESSLEVEL=.*;/export CCACHE_COMPRESSLEVEL=1;/' Scripts/init.sh
+          echo "export CCACHE_EXEC=/usr/bin/ccache;" >> Scripts/init.sh
+          sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="\/mnt\/ccache";/' Scripts/init.sh
+          echo "mkdir -p /mnt/ccache" >> Scripts/init.sh
       
       - name: Checking out the code
         run: |
+          PATH=$PATH:~/bin
           git submodule update --init --recursive; #must have git-lfs installed
           mkdir -p Build/LineageOS-18.1/.repo/local_manifests Builds Signing_Keys .Signing_Keys;
           gocryptfs -init .Signing_Keys;
@@ -159,6 +184,7 @@ jobs:
 
       - name: Build
         run: |
+          PATH=$PATH:~/bin
           cd Build/LineageOS-18.1;
           ##########################################source venv/bin/activate; #Only for python3 default systems, not needed for 18.1 and higher
           source ../../Scripts/init.sh;
@@ -171,18 +197,18 @@ jobs:
       
       - name: LS
         run: ls -alh
-        
+      
       - name: ls $GITHUB_WORKSPACE
         run: ls -alh $GITHUB_WORKSPACE
       
-      - name: ls $GITHUB_WORKSPACE/dos/Builds
-        run: ls -alh $GITHUB_WORKSPACE/dos/Builds
+      - name: ls /mnt/backup-1/DOS/Builds/
+        run: ls -alhr /mnt/backup-1/DOS/Builds/
       
       - name: Release files
         uses: softprops/action-gh-release@v1
-        #with:
+        with:
           ####tag_name: Gadgetbridge-osmand-experiments-${{ needs.get_commit_and_tag.outputs.REMOTETAG }}
-          #tag_name: DivestOS_with_MicroG
+          tag_name: DivestOS_with_MicroG
           #files: |
             # ./app/build/outputs/apk/app-debug.apk
           #files: ./app/build/outputs/apk/main/release/app-main-release-unsigned.apk
