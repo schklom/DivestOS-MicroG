@@ -200,7 +200,9 @@ jobs:
       ############## FEDORA END
       
       - name: CHECK GOCRYPTS
-        run: which gocryptfs
+        run: |
+          PATH=$PATH:~/bin
+          which gocryptfs
       
       - name: Retrieve GitHub code
         run: |
