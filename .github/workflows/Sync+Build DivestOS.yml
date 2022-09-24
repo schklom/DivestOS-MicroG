@@ -127,6 +127,8 @@ jobs:
       volumes:
         # https://gitlab.com/divested-mobile/divestos-build/-/blob/master/Scripts/init.sh#L27
         - /home/runner/Builds:/mnt/backup-1/DOS/Builds/
+      env:
+        GOCRYPTFS_PASSWORD: ${{ secrets.GOCRYPTFS_PASSWORD }}
     steps:      
         # https://divestos.org/index.php?page=build#deps
       - name: Installing dependencies minus python2-virtualenv
@@ -169,6 +171,7 @@ jobs:
           sed -ri 's/^.*export CCACHE_DIR="";/export CCACHE_DIR="\/mnt\/ccache";/' Scripts/init.sh
           echo "mkdir -p /mnt/ccache" >> Scripts/init.sh
           sed -ri 's/git@gitlab.com:/https:\/\/gitlab.com\//' .gitmodules
+          echo $GOCRYPTFS_PASSWORD
       
       - name: Checking out the code
         run: |
@@ -176,7 +179,7 @@ jobs:
           PATH=$PATH:~/bin
           git submodule update --init --recursive; #must have git-lfs installed
           mkdir -p Build/LineageOS-18.1/.repo/local_manifests Builds Signing_Keys .Signing_Keys;
-          gocryptfs -init .Signing_Keys;
+          echo $GOCRYPTFS_PASSWORD | gocryptfs -init .Signing_Keys;
           gocryptfs .Signing_Keys/ Signing_Keys/;
           ##########################################nano Scripts/init.sh; #Choose your options and update paths
           cd Build/LineageOS-18.1;
