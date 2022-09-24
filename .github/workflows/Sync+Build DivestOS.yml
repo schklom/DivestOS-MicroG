@@ -116,56 +116,63 @@ jobs:
           # commit_message: Turn on MicroG and ccache
           
 
-  build_push:
+  build_release:
   #  needs: [repo_sync]
     #needs: [get_commits]
-    runs-on: ubuntu-18.04
+    #runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     # GOCRYPT IS NOT AVAILABLE ON FEDORA 36+
     # https://github.com/rfjakob/gocryptfs/issues/650
     # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idcontainer
     
-    #container:
-    #  image: fedora:35
-    #  volumes:
-    #    # https://gitlab.com/divested-mobile/divestos-build/-/blob/master/Scripts/init.sh#L27
-    #    - /home/runner/Builds:/mnt/backup-1/DOS/Builds/
-    env:
-      GOCRYPTFS_PASSWORD: ${{ secrets.GOCRYPTFS_PASSWORD }}
+    container:
+      image: fedora:latest
+      volumes:
+        # https://gitlab.com/divested-mobile/divestos-build/-/blob/master/Scripts/init.sh#L27
+        - /home/runner/Builds:/mnt/backup-1/DOS/Builds/
+      env:
+        GOCRYPTFS_PASSWORD: ${{ secrets.GOCRYPTFS_PASSWORD }}
+      # https://docs.docker.com/engine/reference/commandline/create/#options
+      options: --privileged
       
     steps:      
-        # https://divestos.org/index.php?page=build#deps
+      # https://divestos.org/index.php?page=build#deps
       
+      ############## FEDORA BEGIN
       #  # https://ask.fedoraproject.org/t/how-to-install-fuse-on-fedora-33/11827/2
-      #- name: Installing dependencies minus python2-virtualenv
-      #  run: |
-      #    sudo dnf update -y;
-      #    sudo dnf install -y @development-tools android-tools automake bc bison bzip2 bzip2-libs ccache curl dpkg-dev flex gcc gcc-c++ git git-lfs glibc-devel.{x86_64,i686} gnupg gperf ImageMagick ImageMagick-c++-devel ImageMagick-devel java-1.8.0-openjdk java-1.8.0-openjdk-devel libgcc.{x86_64,i686} libstdc++.{x86_64,i686} libX11-devel.{x86_64,i686} libxml2-devel libXrandr.{x86_64,i686} libXrender.{x86_64,i686} libxslt lz4-libs lzop make maven mesa-libGL-devel.{x86_64,i686} ncurses ncurses-compat-libs ncurses-devel.{x86_64,i686} ninja-build openssl-devel optipng jpegoptim perl-Digest-MD5-File perl-Switch pngcrush python python3 python3-mako python-mako python-markdown python-networkx readline-devel.{x86_64,i686} rsync schedtool SDL squashfs-tools syslinux-devel unzip wxGTK xml2 xz-lzma-compat zip zlib zlib-devel.{x86_64,i686} vim-common vboot-utils;
-      #    sudo dnf install -y gocryptfs fuse fuse3 fuse-common fuse-libs fuse-overlayfs fuse3-libs;
+      - name: Installing dependencies minus python2-virtualenv
+        run: |
+          sudo dnf update -y;
+          sudo dnf install -y @development-tools android-tools automake bc bison bzip2 bzip2-libs ccache curl dpkg-dev flex gcc gcc-c++ git git-lfs glibc-devel.{x86_64,i686} gnupg gperf ImageMagick ImageMagick-c++-devel ImageMagick-devel java-1.8.0-openjdk java-1.8.0-openjdk-devel libgcc.{x86_64,i686} libstdc++.{x86_64,i686} libX11-devel.{x86_64,i686} libxml2-devel libXrandr.{x86_64,i686} libXrender.{x86_64,i686} libxslt lz4-libs lzop make maven mesa-libGL-devel.{x86_64,i686} ncurses ncurses-compat-libs ncurses-devel.{x86_64,i686} ninja-build openssl-devel optipng jpegoptim perl-Digest-MD5-File perl-Switch pngcrush python python3 python3-mako python-mako python-markdown python-networkx readline-devel.{x86_64,i686} rsync schedtool SDL squashfs-tools syslinux-devel unzip wxGTK xml2 xz-lzma-compat zip zlib zlib-devel.{x86_64,i686} vim-common vboot-utils;
+          sudo dnf install -y gocryptfs fuse fuse3 fuse-common fuse-libs fuse-overlayfs fuse3-libs;
+      ############## FEDORA END
       
-      # https://askubuntu.com/questions/877683/unable-to-locate-package-libc6i386
-      - name: Add sources
-        uses: myci-actions/add-deb-repo@10
-        with:
-          repo: deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe
-          repo-name: divestos
-      - name: Add sources
-        uses: myci-actions/add-deb-repo@10
-        with:
-          repo: deb-src http://us.archive.ubuntu.com/ubuntu/ xenial main universe
-          repo-name: divestos_src
+      ############## UBUNTU-18.04 BEGIN
+      ## https://askubuntu.com/questions/877683/unable-to-locate-package-libc6i386
+      #- name: Add sources
+      #  uses: myci-actions/add-deb-repo@10
+      #  with:
+      #    repo: deb http://us.archive.ubuntu.com/ubuntu/ xenial main universe
+      #    repo-name: divestos
+      #- name: Add sources
+      #  uses: myci-actions/add-deb-repo@10
+      #  with:
+      #    repo: deb-src http://us.archive.ubuntu.com/ubuntu/ xenial main universe
+      #    repo-name: divestos_src
       
       # https://askubuntu.com/questions/1082722/unable-to-locate-package-libesd0-dev-on-ubuntu-18-04
-      - name: Installing dependencies
-        run: |
-          sudo dpkg --print-architecture;
-          sudo dpkg --add-architecture i386;
-          
-          sudo apt update && sudo apt upgrade && sudo apt full-upgrade && sudo apt -f install && sudo apt autoremove;
-          sudo ln -s /usr/include/asm-generic /usr/include/asm;
-          sudo apt install -y gocryptfs fuse;
-          sudo apt install -y autoconf automake bc bison build-essential ccache curl expat flex g++ gawk gcc gcc-multilib git-core git-lfs g++-multilib gnupg gperf lib32ncurses5-dev lib32z1-dev lib32z-dev libc6-dev libc6-dev-i386 libcap-dev libcloog-isl-dev libesd0-dev libexpat1-dev libgcc1:i386 libgl1-mesa-dev libgmp-dev libmpc-dev libmpfr-dev libncurses5-dev libsdl1.2-dev libtool libx11-dev libxml2 libxml2-utils lzop maven ncurses-dev openjdk-8-jdk patch pkg-config pngcrush python-all-dev schedtool squashfs-tools subversion texinfo unzip x11proto-core-dev xsltproc zip zlib1g-dev imagemagick repo firejail optipng jpegoptim;
-          sudo apt clean;
-    
+      #- name: Installing dependencies
+      #  run: |
+      #    sudo dpkg --print-architecture;
+      #    sudo dpkg --add-architecture i386;
+      #    
+      #    sudo apt update && sudo apt upgrade && sudo apt full-upgrade && sudo apt -f install && sudo apt autoremove;
+      #    sudo ln -s /usr/include/asm-generic /usr/include/asm;
+      #    sudo apt install -y gocryptfs fuse;
+      #    sudo apt install -y autoconf automake bc bison build-essential ccache curl expat flex g++ gawk gcc gcc-multilib git-core git-lfs g++-multilib gnupg gperf lib32ncurses5-dev lib32z1-dev lib32z-dev libc6-dev libc6-dev-i386 libcap-dev libcloog-isl-dev libesd0-dev libexpat1-dev libgcc1:i386 libgl1-mesa-dev libgmp-dev libmpc-dev libmpfr-dev libncurses5-dev libsdl1.2-dev libtool libx11-dev libxml2 libxml2-utils lzop maven ncurses-dev openjdk-8-jdk patch pkg-config pngcrush python-all-dev schedtool squashfs-tools subversion texinfo unzip x11proto-core-dev xsltproc zip zlib1g-dev imagemagick repo firejail optipng jpegoptim;
+      #    sudo apt clean;
+      ############## UBUNTU-18.04 END
+      
       - name: env
         run: env
       
@@ -175,13 +182,17 @@ jobs:
       - name: ls $HOME
         run: ls -alhr $HOME
       
-      #- name: Installing dependencies adjusting $PATH (Fedora)
-      #  run: |
-      #    PATH=$PATH:~/bin
-      #    mkdir -p ~/bin
-      #    curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo;
-      #    chmod a+x ~/bin/repo;
-      #    sudo ln -sf /usr/share/crypto-policies/LEGACY/java.txt /etc/crypto-policies/back-ends/java.config;
+      ############## FEDORA BEGIN
+      - name: Installing dependencies adjusting $PATH
+        run: |
+          PATH=$PATH:~/bin
+          mkdir -p ~/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo;
+          chmod a+x ~/bin/repo;
+          sudo ln -sf /usr/share/crypto-policies/LEGACY/java.txt /etc/crypto-policies/back-ends/java.config;
+          
+          curl "https://github.com/rfjakob/gocryptfs/releases/download/v2.3/gocryptfs_v2.3_linux-static_amd64.tar.gz" -o ~/bin/gocryptfs
+      ############## FEDORA END
       
       - name: Retrieve GitHub code
         run: |
