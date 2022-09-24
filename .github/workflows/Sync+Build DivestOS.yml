@@ -147,9 +147,14 @@ jobs:
           umask 0022;
           git clone https://gitlab.com/divested-mobile/divestos-build.git DivestOS;
           cd DivestOS;
+          pwd;
+          ls -alh;
+          ls -alh Scripts;
       
       - name: Adjust variables
         run: |
+          pwd;
+          ls -alhr;
           sed -i 's/^.*export DOS_MICROG_INCLUDED="NONE";/export DOS_MICROG_INCLUDED="FULL";/' Scripts/init.sh
           sed -ri 's/^.*export USE_CCACHE=.*;/export USE_CCACHE=1;/' Scripts/init.sh
           sed -ri 's/^.*export CCACHE_COMPRESS=.*;/export CCACHE_COMPRESS=1;/' Scripts/init.sh
