@@ -264,7 +264,7 @@ jobs:
         run: ls -alhr /mnt/backup-1/DOS/Builds/
       
       - name: Release files
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           ####tag_name: Gadgetbridge-osmand-experiments-${{ needs.get_commit_and_tag.outputs.REMOTETAG }}
           tag_name: DivestOS_with_MicroG
